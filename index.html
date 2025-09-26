@@ -224,6 +224,146 @@
         </div>
     </div>
 </div>
+
+<script>
+    // Oyunun başlanğıc skorları
+    let playerScore = 1;
+    let computerScore = 0;
+    let gameHistory = [];
+    let winRateHistory = [0.5]; // Starting at 50%
+
+    // Google Charts Yukleyir
+    google.charts.load('current', {'packages':['corechart']});
+    google.charts.setOnLoadCallback(drawCharts);
+
+    // Sabit smaylink-ler
+    const handGestures = {
+        rock: '✊',
+        paper: '✋',
+        scissors: '✌️'
+    };
+
+    // Oyunu oynamaq
+    function playGame(playerChoice) {
+        const choices = ['rock', 'paper', 'scissors'];
+        const computerChoice = choices[Math.floor(Math.random() * choices.length)];
+
+        document.getElementById('playerHand').textContent = handGestures[playerChoice];
+        document.getElementById('computerHand').textContent = handGestures[computerChoice];
+
+        let result;
+        if (playerChoice === computerChoice) {
+            result = 'tie';
+        } else if (
+            (playerChoice === 'rock' && computerChoice === 'scissors') ||
+            (playerChoice === 'paper' && computerChoice === 'rock') ||
+            (playerChoice === 'scissors' && computerChoice === 'paper')
+        ) {
+            result = 'win';
+            playerScore++;
+        } else {
+            result = 'lose';
+            computerScore++;
+        }
+        gameHistory.push({playerChoice, computerChoice, result});
+
+        const resultText = document.getElementById('resultText');
+        if (result === 'win') {
+            resultText.textContent = 'You win';
+            resultText.style.color = '#4CAF50';
+        } else if (result === 'lose') {
+            resultText.textContent = 'You lose';
+            resultText.style.color = '#f44336';
+        } else {
+            resultText.textContent = 'Tie';
+            resultText.style.color = '#ff9800';
+        }
+
+        document.getElementById('playerScore').textContent = playerScore;
+        document.getElementById('computerScore').textContent = computerScore;
+
+
+
+        const totalGames = playerScore + computerScore;
+        const winRate = totalGames > 0 ? playerScore / totalGames : 0.5;
+        winRateHistory.push(winRate);
+
+        // Oyun Hesabatini calisdirir
+        gameHistoryReport(gameHistory)
+
+        // Chart cagirir
+        drawCharts();
+    }
+
+    // Oyun Hesabatini hazirlayir
+    function gameHistoryReport(gameHistory){
+        let elementById = document.querySelector(".my-report table");
+        elementById.innerHTML = ''
+        count=1;
+        gameHistory.forEach(function(gh){
+            let html = "";
+            let style = "";
+            html +=`<tr class="history-row">`;
+            if(gh.result === 'win'){
+                html +=`<td><div class="history-gesture you-scr " style="background-color: #4CAF50">${handGestures[gh.playerChoice]}</div></td>`;
+                html +=`<td><strong>Round ${count++}</strong><br/><strong>You win</strong></td>`;
+                html +=`<td><div class="history-gesture computer-scr" style="background-color: #f44336;">${handGestures[gh.computerChoice]}</div></td>`;
+            }else if(gh.result === 'lose'){
+                html +=`<td><div class="history-gesture you-scr" style="background-color: #f44336;">${handGestures[gh.playerChoice]}</div></td>`;
+                html +=`<td><strong>Round ${count++}</strong><br/><strong>You lose</strong></td>`;
+                html +=`<td><div class="history-gesture computer-scr " style="background-color: #4CAF50;">${handGestures[gh.computerChoice]}</div></td>`;
+            }
+            html +=`</tr>`;
+            elementById.innerHTML += html;
+        });
+
+    }
+
+
+    // Chart hazirlayir
+    function drawCharts() {
+        drawPieChart();
+    }
+
+    // Qrafiki Chart hazirlayir
+    function drawPieChart() {
+        const data = google.visualization.arrayToDataTable([
+            ['Player', 'Score'],
+            ['You', playerScore],
+            ['Computer', computerScore]
+        ]);
+
+        const options = {
+            pieHole: 0,
+            colors: ['#4CAF50', '#f44336'],
+            legend: 'none',
+            pieSliceText: 'none',
+            backgroundColor: 'transparent',
+            chartArea: {width: '90%', height: '90%'}
+        };
+
+        const chart = new google.visualization.PieChart(document.getElementById('pieChart'));
+        chart.draw(data, options);
+    }
+
+    // Oyunu sıfırlamaq
+    function resetGame() {
+        playerScore = 0;
+        computerScore = 0;
+        gameHistory = [];
+        winRateHistory = [0.5];
+
+        document.getElementById('playerScore').textContent = playerScore;
+        document.getElementById('computerScore').textContent = computerScore;
+        document.getElementById('resultText').textContent = 'Make your choice';
+        document.getElementById('resultText').style.color = '#666';
+        document.getElementById('playerHand').textContent = '✋';
+        document.getElementById('computerHand').textContent = '✋';
+
+        gameHistoryReport([])
+
+        drawCharts();
+    }
 </script>
 </body>
 </html>
