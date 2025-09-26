@@ -226,11 +226,15 @@
 </div>
 
 <script>
+
+
+
     // Oyunun başlanğıc skorları
     let playerScore = 1;
     let computerScore = 0;
     let gameHistory = [];
-    let winRateHistory = [0.5]; // Starting at 50%
+    let winScoreHistory = [0.5]; // Starting at 50%
+    let result;
 
     // Google Charts Yukleyir
     google.charts.load('current', {'packages':['corechart']});
@@ -251,9 +255,24 @@
         document.getElementById('playerHand').textContent = handGestures[playerChoice];
         document.getElementById('computerHand').textContent = handGestures[computerChoice];
 
-        let result;
+        // Umumi scoring hazirlayir
+        totalScore();
+
+        // Oyun tarixini yenileyir
+        prepareGameHistory(playerChoice, computerChoice)
+
+        // Oyunun neticesini deyisir
+        changeStatus(result);
+
+        // Oyun Hesabatini calisdirir
+        gameHistoryReport(gameHistory)
+
+        // Chart cagirir
+        drawCharts();
+    }
+    function prepareGameHistory(playerChoice, computerChoice){
         if (playerChoice === computerChoice) {
-            result = 'tie';
+            result = 'again';
         } else if (
             (playerChoice === 'rock' && computerChoice === 'scissors') ||
             (playerChoice === 'paper' && computerChoice === 'rock') ||
@@ -266,7 +285,9 @@
             computerScore++;
         }
         gameHistory.push({playerChoice, computerChoice, result});
+    }
 
+    function changeStatus(result){
         const resultText = document.getElementById('resultText');
         if (result === 'win') {
             resultText.textContent = 'You win';
@@ -275,34 +296,27 @@
             resultText.textContent = 'You lose';
             resultText.style.color = '#f44336';
         } else {
-            resultText.textContent = 'Tie';
+            resultText.textContent = 'Again start';
             resultText.style.color = '#ff9800';
         }
+    }
 
-        document.getElementById('playerScore').textContent = playerScore;
-        document.getElementById('computerScore').textContent = computerScore;
-
-
-
+    function totalScore(){
         const totalGames = playerScore + computerScore;
-        const winRate = totalGames > 0 ? playerScore / totalGames : 0.5;
-        winRateHistory.push(winRate);
-
-        // Oyun Hesabatini calisdirir
-        gameHistoryReport(gameHistory)
-
-        // Chart cagirir
-        drawCharts();
+        const winScore = totalGames > 0 ? playerScore / totalGames : 0.5;
+        winScoreHistory.push(winScore);
     }
 
     // Oyun Hesabatini hazirlayir
     function gameHistoryReport(gameHistory){
+        document.getElementById('playerScore').textContent = playerScore;
+        document.getElementById('computerScore').textContent = computerScore;
+
         let elementById = document.querySelector(".my-report table");
         elementById.innerHTML = ''
         count=1;
         gameHistory.forEach(function(gh){
             let html = "";
-            let style = "";
             html +=`<tr class="history-row">`;
             if(gh.result === 'win'){
                 html +=`<td><div class="history-gesture you-scr " style="background-color: #4CAF50">${handGestures[gh.playerChoice]}</div></td>`;
@@ -318,7 +332,6 @@
         });
 
     }
-
 
     // Chart hazirlayir
     function drawCharts() {
@@ -351,7 +364,7 @@
         playerScore = 0;
         computerScore = 0;
         gameHistory = [];
-        winRateHistory = [0.5];
+        winScoreHistory = [0.5];
 
         document.getElementById('playerScore').textContent = playerScore;
         document.getElementById('computerScore').textContent = computerScore;
